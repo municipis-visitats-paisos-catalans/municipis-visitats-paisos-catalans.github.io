@@ -1,10 +1,9 @@
-import { Component, HostListener } from '@angular/core';
-import { Footer } from 'src/app/components/footer/footer';
+import { Component } from '@angular/core';
 import { Mapa } from './components/mapa/mapa';
 
 @Component({
     selector: 'app-root',
-    imports: [Mapa, Footer],
+    imports: [Mapa],
     templateUrl: './app.html',
     styleUrl: './app.scss'
 })

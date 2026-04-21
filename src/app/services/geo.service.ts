@@ -1,5 +1,5 @@
-import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { Injectable } from '@angular/core';
 import { map } from 'rxjs/operators';
 import { feature } from 'topojson-client';
 
@@ -13,7 +13,7 @@ export class GeoService {
 
     load() {
         return this.http
-            .get<any>('assets/geojson/paisos-catalans-3perc.json')
+            .get<any>('assets/geojson/paisos-catalans-5perc.json')
             .pipe(
                 map((topo) => {
                     const name = Object.keys(topo.objects)[0];
@@ -24,7 +24,6 @@ export class GeoService {
                             ? geo
                             : { type: 'FeatureCollection', features: [geo] };
 
-                    // només polígons
                     fc.features = fc.features.filter(
                         (f: any) =>
                             f?.geometry?.type === 'Polygon' ||
