@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://municipis-visitats-paisos-catalans.github.io/sitemap.xml
