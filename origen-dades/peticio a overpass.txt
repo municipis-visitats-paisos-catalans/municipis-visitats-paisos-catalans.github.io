@@ -1,0 +1,25 @@
+// https://overpass-turbo.eu/ //
+
+
+[out:json][timeout:500];
+relation(id:11746917); map_to_area->.Catalunya;
+area["name"="Val d'Aran"]->.Aran;
+relation(id:348981); map_to_area->.Illes;
+relation(id:9407); map_to_area->.Andorra;
+relation(id:11745120); map_to_area->.CatNord;
+relation(id:11744144); map_to_area->.Franja;
+relation(id:11739086); map_to_area->.PV;
+// relation(id:11755232); map_to_area->.Carxe;
+// relation(id:40581); map_to_area->.Alguer;
+(
+    relation["admin_level"="8"]["boundary"="administrative"](area.Catalunya);
+    relation["admin_level"="8"]["boundary"="administrative"](area.Aran);
+    relation["admin_level"="8"]["boundary"="administrative"](area.Illes);
+    relation["admin_level"="7"]["boundary"="administrative"](area.Andorra);
+    relation["admin_level"="8"]["boundary"="administrative"](area.CatNord);
+    relation["admin_level"="8"]["boundary"="administrative"](area.Franja);
+    relation["admin_level"="8"]["boundary"="administrative"](area.PV);
+    relation(id:11755232); // el Carxe
+    relation(id:40581); // l'Alguer
+);
+out geom;

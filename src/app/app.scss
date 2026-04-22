@@ -3,30 +3,29 @@
 
 header {
     position: fixed;
-    top: 0;
     width: 100%;
     backdrop-filter: saturate(1) blur(20px);
+
     display: flex;
-    height: 6rem;
-    @include mobil {
-        height: 4rem;
-    }
     align-items: center;
     gap: 0.5rem;
 
+    height: 6rem;
+    @include mobil { height: 4rem; }
+
     z-index: 1000;
     
-    img.logo {
-        max-height: 100%;
-        max-width: 60%;
-        padding: 0.5rem;
-        padding-left: 1.5rem;
+    // img.logo {
+    //     max-height: 100%;
+    //     max-width: 60%;
+    //     padding: 0.5rem;
+    //     padding-left: 1.5rem;
 
-        position: static;
-        @include gran {
-            position: absolute;
-        }
-    }
+    //     position: static;
+    //     @include gran {
+    //         position: absolute;
+    //     }
+    // }
     .titol-header {
         font-size: calc(1.325rem + 1.2vw);
         line-height: 2.5rem;
@@ -36,18 +35,15 @@ header {
         }
         letter-spacing: 1px;
         color: white;
-        font-weight: normal;
         font-style: italic;
 
         padding: 0.5rem;
-
-        transition: opacity 0.3s;
     }
 }
 
 .content {
     width: 100%;
-    height: 100vh;
+    height: 100dvh;
 
     font-size: 1.5rem;
 }

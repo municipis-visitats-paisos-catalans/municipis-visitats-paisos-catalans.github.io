@@ -10,7 +10,9 @@ import {
 } from '@angular/core';
 import * as d3 from 'd3';
 import { FeatureCollectionType, GeoService } from 'src/app/services/geo.service';
+import { MainService } from 'src/app/services/main.service';
 import { MapaStateService } from 'src/app/services/mapa-state.service';
+import { Utils } from 'src/app/shared/utils';
 
 @Component({
     selector: 'jmp-mapa',
@@ -42,7 +44,7 @@ export class Mapa implements AfterViewInit {
     private pathsCache: Path2D[] = [];
     private centroids: [number, number][] = [];
 
-    private esMobil: boolean;
+    constructor(private m: MainService) { }
 
     ngAfterViewInit() {
         const canvas = this.canvasRef.nativeElement;
@@ -71,8 +73,6 @@ export class Mapa implements AfterViewInit {
             this.setupClick();
             this.draw();
         });
-
-        this.esMobil = window.innerWidth < 768;
     }
 
     @HostListener('window:resize')
@@ -135,27 +135,42 @@ export class Mapa implements AfterViewInit {
         ctx.save();
         ctx.setTransform(k, 0, 0, k, x, y);
 
-        ctx.fillStyle = '#ddd';
-        ctx.strokeStyle = '#333';
         ctx.lineWidth = 0.5 / k;
 
         const zonaCentre = this.getCenterZona();
 
+        let hslUnvisited: string;
+        let hslVisited: string;
+        let hslStroke: string;
+
+        if (Utils.darkMode) {
+            hslUnvisited = '219, 0%, 100%'; // 219, 0%, 100%)
+            hslVisited = '50, 100%, 50%';  // hsl(50, 100%, 50%)
+            hslStroke = '0, 0%, 85%';   // hsl(0, 0%, 85%)
+        } else {
+            hslUnvisited = '50, 0%, 100%'; // hsl(50, 100%, 100%)
+            hslVisited = '50, 100%, 50%';  // hsl(50, 100%, 50%)
+            hslStroke = '0, 0%, 85%';   // hsl(0, 0%, 85%)
+        }
+
         for (let i = 0; i < this.pathsCache.length; i++) {
             const p = this.pathsCache[i];
-            const zona = this.data.features[i].properties['zona'];
+            const f = this.data.features[i];
+            const zona = f.properties['zona'];
 
-            if (zonaCentre && zona !== zonaCentre) {
-                ctx.globalAlpha = 0.3;
-            } else {
-                ctx.globalAlpha = 1;
-            }
+            const isSelected = false//(i % 7 === 0); // TEST
+
+            const isInactive = zonaCentre && zona !== zonaCentre;
+            const alpha = isInactive ? 0.3 : 1;
+
+            const fillHsl = isSelected ? hslVisited : hslUnvisited;
+
+            ctx.fillStyle = `hsla(${fillHsl}, ${alpha})`;
+            ctx.strokeStyle = `hsla(${hslStroke}, ${isInactive ? 0 : 1})`;
 
             ctx.fill(p);
             ctx.stroke(p);
         }
-
-        ctx.globalAlpha = 1;
 
         this.drawLabels();
 
@@ -191,26 +206,24 @@ export class Mapa implements AfterViewInit {
 
     private drawLabels() {
         const k = this.transform.k;
-        const zoomLimitPintarLabels = this.esMobil ? 25 : 10;
+        const zoomLimitPintarLabels = this.m.esMobil ? 25 : 10;
         if (k < zoomLimitPintarLabels) return;
 
         const zonaCentre = this.getCenterZona();
 
         const centerScreen: [number, number] = [this.width / 2, this.height / 2];
-        const radius = Math.min(this.width, this.height) * (this.esMobil ? 0.25 : 0.5);
+        const radius = Math.min(this.width, this.height) * (this.m.esMobil ? 0.25 : 0.5);
 
         const ctx = this.ctx;
         ctx.fillStyle = '#000';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
 
-        const size = 13 / k;
-        ctx.font = `${size}px sans-serif`;
+        const basePx = 14;
 
         for (let i = 0; i < this.centroids.length; i++) {
             const f = this.data.features[i];
 
-            // FILTRE ZONA
             if (zonaCentre && f.properties['zona'] !== zonaCentre) continue;
 
             const c = this.centroids[i];
@@ -220,18 +233,32 @@ export class Mapa implements AfterViewInit {
 
             const dx = cScreen[0] - centerScreen[0];
             const dy = cScreen[1] - centerScreen[1];
+            const dist = Math.sqrt(dx * dx + dy * dy);
 
-            if ((dx * dx + dy * dy) > (radius * radius)) continue;
+            // Eliminar els de fora del radi //
+            // if (dist > radius) continue;
+
+            const t = 1 - (dist / radius);
+            const scale = 0.8 + t * 0.4;
+
+            if (scale <= 0) continue;
 
             const lines = this.splitLabel(f.properties['name']);
+
+            ctx.save();
+            ctx.translate(c[0], c[1]);
+            ctx.scale(scale / k, scale / k);
+            ctx.font = `${basePx}px sans-serif`;
 
             for (let j = 0; j < lines.length; j++) {
                 ctx.fillText(
                     lines[j],
-                    c[0],
-                    c[1] + (j - (lines.length - 1) / 2) * (size * 1.2)
+                    0,
+                    (j - (lines.length - 1) / 2) * (basePx * 1.2)
                 );
             }
+
+            ctx.restore();
         }
     }
 
