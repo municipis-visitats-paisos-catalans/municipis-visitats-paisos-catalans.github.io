@@ -12,6 +12,7 @@ import * as d3 from 'd3';
 import { FeatureCollectionType, GeoService } from 'src/app/services/geo.service';
 import { MainService } from 'src/app/services/main.service';
 import { MapaStateService } from 'src/app/services/mapa-state.service';
+import { MunicipisService } from 'src/app/services/municipis.service';
 import { Utils } from 'src/app/shared/utils';
 
 @Component({
@@ -28,6 +29,7 @@ export class Mapa implements AfterViewInit {
 
     private geo = inject(GeoService);
     private state = inject(MapaStateService);
+    private municipis = inject(MunicipisService);
 
     private ctx!: CanvasRenderingContext2D;
 
@@ -43,6 +45,8 @@ export class Mapa implements AfterViewInit {
 
     private pathsCache: Path2D[] = [];
     private centroids: [number, number][] = [];
+
+    private longPressTimer: any = null;
 
     constructor(private m: MainService) { }
 
@@ -70,7 +74,7 @@ export class Mapa implements AfterViewInit {
                 d3.select(canvas).call(this.zoom.transform, initialTransform);
             }
 
-            this.setupClick();
+            this.setupEvents();
             this.draw();
         });
     }
@@ -134,47 +138,56 @@ export class Mapa implements AfterViewInit {
 
         ctx.save();
         ctx.setTransform(k, 0, 0, k, x, y);
-
         ctx.lineWidth = 0.5 / k;
 
         const zonaCentre = this.getCenterZona();
-
-        let hslUnvisited: string;
-        let hslVisited: string;
-        let hslStroke: string;
-
-        if (Utils.darkMode) {
-            hslUnvisited = '219, 0%, 100%'; // 219, 0%, 100%)
-            hslVisited = '50, 100%, 50%';  // hsl(50, 100%, 50%)
-            hslStroke = '0, 0%, 85%';   // hsl(0, 0%, 85%)
-        } else {
-            hslUnvisited = '50, 0%, 100%'; // hsl(50, 100%, 100%)
-            hslVisited = '50, 100%, 50%';  // hsl(50, 100%, 50%)
-            hslStroke = '0, 0%, 85%';   // hsl(0, 0%, 85%)
-        }
+        const colors = this.getColors();
 
         for (let i = 0; i < this.pathsCache.length; i++) {
             const p = this.pathsCache[i];
             const f = this.data.features[i];
-            const zona = f.properties['zona'];
 
-            const isSelected = false//(i % 7 === 0); // TEST
+            const m = this.municipis.get(f.properties);
 
-            const isInactive = zonaCentre && zona !== zonaCentre;
+            const isSelected = m.visitat;
+            const isInactive = zonaCentre && f.properties['zona'] !== zonaCentre;
+
             const alpha = isInactive ? 0.3 : 1;
 
-            const fillHsl = isSelected ? hslVisited : hslUnvisited;
+            const fill = isSelected ? colors.visited : colors.unvisited;
 
-            ctx.fillStyle = `hsla(${fillHsl}, ${alpha})`;
-            ctx.strokeStyle = `hsla(${hslStroke}, ${isInactive ? 0 : 1})`;
+            ctx.fillStyle = `hsla(${fill}, ${alpha})`;
+            ctx.strokeStyle = `hsla(${colors.stroke}, ${isInactive ? 0 : 1})`;
 
             ctx.fill(p);
             ctx.stroke(p);
         }
 
-        this.drawLabels();
+        this.drawLabels(colors);
 
         ctx.restore();
+    }
+
+    private getColors() {
+        if (Utils.darkMode) {
+            return {
+                // unvisited: '50, 100%, 93%', // hsl(50, 100%, 93%) //
+                // stroke: '50, 50%, 75%',    // hsl(50, 50%, 75%) //
+                unvisited: '217, 39%, 45%', // hsl(217, 39%, 18%) //
+                visited: '50, 100%, 50%',   // hsl(50, 100%, 50%) //
+                stroke: '217, 39%, 65%',    // hsl(211, 31%, 35%) //
+                labelSelected: '#000',
+                labelUnselected: '#fff'
+            };
+        }
+
+        return {
+            unvisited: '50, 0%, 100%',  // hsl(50, 0%, 100%) //
+            visited: '50, 100%, 50%',   // hsl(50, 100%, 50%) //
+            stroke: '0, 0%, 85%',       // hsl(0, 0%, 85%) //
+            labelSelected: '#000',
+            labelUnselected: '#000'
+        };
     }
 
     private getCenterZona(): string | null {
@@ -204,7 +217,7 @@ export class Mapa implements AfterViewInit {
         return this.data.features[bestIndex].properties['zona'] || null;
     }
 
-    private drawLabels() {
+    private drawLabels(colors: any) {
         const k = this.transform.k;
         const zoomLimitPintarLabels = this.m.esMobil ? 25 : 10;
         if (k < zoomLimitPintarLabels) return;
@@ -215,7 +228,6 @@ export class Mapa implements AfterViewInit {
         const radius = Math.min(this.width, this.height) * (this.m.esMobil ? 0.25 : 0.5);
 
         const ctx = this.ctx;
-        ctx.fillStyle = '#000';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
 
@@ -225,6 +237,8 @@ export class Mapa implements AfterViewInit {
             const f = this.data.features[i];
 
             if (zonaCentre && f.properties['zona'] !== zonaCentre) continue;
+
+            const m = this.municipis.get(f.properties);
 
             const c = this.centroids[i];
             if (!isFinite(c[0]) || !isFinite(c[1])) continue;
@@ -243,12 +257,17 @@ export class Mapa implements AfterViewInit {
 
             if (scale <= 0) continue;
 
-            const lines = this.splitLabel(f.properties['name']);
+            const lines = this.splitLabel(f.properties['name:ca'] || f.properties['name']);
 
             ctx.save();
             ctx.translate(c[0], c[1]);
             ctx.scale(scale / k, scale / k);
-            ctx.font = `${basePx}px sans-serif`;
+
+            ctx.fillStyle = m.visitat
+                ? colors.labelSelected
+                : colors.labelUnselected;
+
+            ctx.font = `bold ${basePx}px sans-serif`;
 
             for (let j = 0; j < lines.length; j++) {
                 ctx.fillText(
@@ -287,24 +306,87 @@ export class Mapa implements AfterViewInit {
         ];
     }
 
-    private setupClick() {
+    private setupEvents() {
         const canvas = this.canvasRef.nativeElement;
 
-        canvas.addEventListener('click', (e) => {
-            const rect = canvas.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
+        let timer: any = null;
+        let startX = 0;
+        let startY = 0;
+        let moved = false;
+        let longPress = false;
 
-            const local = this.transform.invert([x, y]);
+        const LONG_PRESS_MS = 400;
+        const MOVE_TOLERANCE = 8;
+
+        const getIndex = (x: number, y: number): number | null => {
+            const rect = canvas.getBoundingClientRect();
+
+            const px = x - rect.left;
+            const py = y - rect.top;
+
+            const { x: tx, y: ty, k } = this.transform;
+
+            const lx = (px - tx) / k;
+            const ly = (py - ty) / k;
 
             for (let i = 0; i < this.pathsCache.length; i++) {
-                if (this.ctx.isPointInPath(this.pathsCache[i], local[0], local[1])) {
-                    const f = this.data.features[i];
-                    this.state.selected$.next(f.properties);
-                    alert(f.properties['name']);
-                    break;
+                if (this.ctx.isPointInPath(this.pathsCache[i], lx, ly)) {
+                    return i;
                 }
             }
+
+            return null;
+        };
+
+        canvas.addEventListener('pointerdown', (e: PointerEvent) => {
+            startX = e.clientX;
+            startY = e.clientY;
+
+            moved = false;
+            longPress = false;
+
+            timer = setTimeout(() => {
+                if (moved) return;
+
+                const i = getIndex(startX, startY);
+                if (i === null) return;
+
+                const f = this.data.features[i];
+                const m = this.municipis.get(f.properties);
+
+                m.toggleVisita();
+
+                this.draw();
+
+                longPress = true;
+            }, LONG_PRESS_MS);
+        });
+
+        canvas.addEventListener('pointermove', (e: PointerEvent) => {
+            const dx = e.clientX - startX;
+            const dy = e.clientY - startY;
+
+            if (Math.abs(dx) > MOVE_TOLERANCE || Math.abs(dy) > MOVE_TOLERANCE) {
+                moved = true;
+                clearTimeout(timer);
+            }
+        });
+
+        canvas.addEventListener('pointerup', (e: PointerEvent) => {
+            clearTimeout(timer);
+
+            if (moved || longPress) return;
+
+            const i = getIndex(e.clientX, e.clientY);
+            if (i === null) return;
+
+            const f = this.data.features[i];
+
+            alert(f.properties['name']); // futur modal
+        });
+
+        canvas.addEventListener('pointerleave', () => {
+            clearTimeout(timer);
         });
     }
 
