@@ -1,7 +1,5 @@
 import { Injectable } from "@angular/core";
 
-// https://developerslogblog.wordpress.com/2019/04/23/how-to-use-angular-services-to-share-data-between-components/ //
-
 @Injectable({
     providedIn: 'root'
 })

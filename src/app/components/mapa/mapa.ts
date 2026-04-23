@@ -9,6 +9,7 @@ import {
     inject
 } from '@angular/core';
 import * as d3 from 'd3';
+import { AppStateService } from 'src/app/services/app-state.service';
 import { FeatureCollectionType, GeoService } from 'src/app/services/geo.service';
 import { MainService } from 'src/app/services/main.service';
 import { MapaStateService } from 'src/app/services/mapa-state.service';
@@ -28,7 +29,8 @@ export class Mapa implements AfterViewInit {
     canvasRef!: ElementRef<HTMLCanvasElement>;
 
     private geo = inject(GeoService);
-    private state = inject(MapaStateService);
+    private mapState = inject(MapaStateService);
+    private appState = inject(AppStateService);
     private registreMunicipisVisitats = inject(RegistreMunicipisVisitatsService);
     private m = inject(MainService);
 
@@ -55,9 +57,9 @@ export class Mapa implements AfterViewInit {
             this.data = d;
 
             // Omplir objecte municipis //
-            this.state.municipis = {};
+            this.appState.municipis = {};
             for (const feature of this.data.features) {
-                this.state.municipis[feature.id!];
+                this.appState.municipis[feature.id!] = feature;
             }
             // Omplir objecte municipisVisitats //
             this.registreMunicipisVisitats.carregar();
@@ -154,7 +156,7 @@ export class Mapa implements AfterViewInit {
             const p = this.pathsCache[i];
             const f = this.data.features[i];
 
-            const isSelected = this.state.municipisVisitats[f.id!];
+            const isSelected = this.appState.municipisVisitats[f.id!];
             const isInactive = zonaCentre && f.properties['zona'] !== zonaCentre;
 
             const alpha = isInactive ? 0.3 : 1;
@@ -181,8 +183,8 @@ export class Mapa implements AfterViewInit {
                 unvisited: '217, 39%, 45%', // hsl(217, 39%, 18%) //
                 visited: '50, 100%, 50%',   // hsl(50, 100%, 50%) //
                 stroke: '217, 39%, 65%',    // hsl(211, 31%, 35%) //
-                labelSelected: '#000',
-                labelUnselected: '#fff'
+                labelVisited: '#000',
+                labelUnvisited: '#fff'
             };
         }
 
@@ -190,8 +192,8 @@ export class Mapa implements AfterViewInit {
             unvisited: '50, 0%, 100%',  // hsl(50, 0%, 100%) //
             visited: '50, 100%, 50%',   // hsl(50, 100%, 50%) //
             stroke: '0, 0%, 85%',       // hsl(0, 0%, 85%) //
-            labelSelected: '#000',
-            labelUnselected: '#000'
+            labelVisited: '#000',
+            labelUnvisited: '#000'
         };
     }
 
@@ -251,6 +253,7 @@ export class Mapa implements AfterViewInit {
             const dx = cScreen[0] - centerScreen[0];
             const dy = cScreen[1] - centerScreen[1];
             const dist = Math.sqrt(dx * dx + dy * dy);
+            const municipiVisitat = !!this.appState.municipisVisitats[f.id!];
 
             // Eliminar els de fora del radi //
             // if (dist > radius) continue;
@@ -266,9 +269,15 @@ export class Mapa implements AfterViewInit {
             ctx.translate(c[0], c[1]);
             ctx.scale(scale / k, scale / k);
 
-            ctx.fillStyle = this.state.municipisVisitats[f.id!]
-                ? colors.labelSelected
-                : colors.labelUnselected;
+            ctx.fillStyle = municipiVisitat
+                ? colors.labelVisited
+                : colors.labelUnvisited;
+            
+            if (!municipiVisitat && Utils.darkMode) {
+                // Ombra //
+                ctx.shadowColor = 'hsl(217, 39%, 45%)';
+                ctx.shadowBlur = 4;
+            }
 
             ctx.font = `bold ${basePx}px sans-serif`;
 
@@ -356,11 +365,8 @@ export class Mapa implements AfterViewInit {
 
                 const f = this.data.features[i];
 
-                this.state.toggleVisita(<string>f.id);
+                this.onLongClick(<string>f.id);
                 
-
-                this.registreMunicipisVisitats.guardar();
-
                 this.draw();
 
                 longPress = true;
@@ -387,7 +393,7 @@ export class Mapa implements AfterViewInit {
 
             const f = this.data.features[i];
 
-            alert(f.properties['name']); // futur modal
+            this.onClick(<string>f.id);
         });
 
         canvas.addEventListener('pointerleave', () => {
@@ -410,5 +416,22 @@ export class Mapa implements AfterViewInit {
         } catch {
             return null;
         }
+    }
+
+
+
+    // Clicks //
+    private onClick(id: string) {
+        
+        alert(this.appState.municipis[id].properties['name']);
+
+        this.mapState.municipiSeleccionat$.next(this.appState.municipis[id]);
+
+        // <El modal s'obre sol al fer el .next()> //
+    }
+    private onLongClick(id: string) {
+        this.appState.toggleVisita(id);
+
+        this.registreMunicipisVisitats.guardar();
     }
 }
