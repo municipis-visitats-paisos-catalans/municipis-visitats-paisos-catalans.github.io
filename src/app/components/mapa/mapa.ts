@@ -12,7 +12,7 @@ import * as d3 from 'd3';
 import { FeatureCollectionType, GeoService } from 'src/app/services/geo.service';
 import { MainService } from 'src/app/services/main.service';
 import { MapaStateService } from 'src/app/services/mapa-state.service';
-import { MunicipisService } from 'src/app/services/municipis.service';
+import { RegistreMunicipisVisitatsService } from 'src/app/services/registre-municipis-visitats.service';
 import { Utils } from 'src/app/shared/utils';
 
 @Component({
@@ -29,7 +29,8 @@ export class Mapa implements AfterViewInit {
 
     private geo = inject(GeoService);
     private state = inject(MapaStateService);
-    private municipis = inject(MunicipisService);
+    private registreMunicipisVisitats = inject(RegistreMunicipisVisitatsService);
+    private m = inject(MainService);
 
     private ctx!: CanvasRenderingContext2D;
 
@@ -46,16 +47,22 @@ export class Mapa implements AfterViewInit {
     private pathsCache: Path2D[] = [];
     private centroids: [number, number][] = [];
 
-    private longPressTimer: any = null;
-
-    constructor(private m: MainService) { }
-
     ngAfterViewInit() {
         const canvas = this.canvasRef.nativeElement;
         this.ctx = canvas.getContext('2d')!;
 
         this.geo.load().subscribe((d) => {
             this.data = d;
+
+            // Omplir objecte municipis //
+            this.state.municipis = {};
+            for (const feature of this.data.features) {
+                this.state.municipis[feature.id!];
+            }
+            // Omplir objecte municipisVisitats //
+            this.registreMunicipisVisitats.carregar();
+
+
             this.render();
             this.buildCache();
             this.setupZoom();
@@ -147,9 +154,7 @@ export class Mapa implements AfterViewInit {
             const p = this.pathsCache[i];
             const f = this.data.features[i];
 
-            const m = this.municipis.get(f.properties);
-
-            const isSelected = m.visitat;
+            const isSelected = this.state.municipisVisitats[f.id!];
             const isInactive = zonaCentre && f.properties['zona'] !== zonaCentre;
 
             const alpha = isInactive ? 0.3 : 1;
@@ -238,8 +243,6 @@ export class Mapa implements AfterViewInit {
 
             if (zonaCentre && f.properties['zona'] !== zonaCentre) continue;
 
-            const m = this.municipis.get(f.properties);
-
             const c = this.centroids[i];
             if (!isFinite(c[0]) || !isFinite(c[1])) continue;
 
@@ -263,7 +266,7 @@ export class Mapa implements AfterViewInit {
             ctx.translate(c[0], c[1]);
             ctx.scale(scale / k, scale / k);
 
-            ctx.fillStyle = m.visitat
+            ctx.fillStyle = this.state.municipisVisitats[f.id!]
                 ? colors.labelSelected
                 : colors.labelUnselected;
 
@@ -352,9 +355,11 @@ export class Mapa implements AfterViewInit {
                 if (i === null) return;
 
                 const f = this.data.features[i];
-                const m = this.municipis.get(f.properties);
 
-                m.toggleVisita();
+                this.state.toggleVisita(<string>f.id);
+                
+
+                this.registreMunicipisVisitats.guardar();
 
                 this.draw();
 
