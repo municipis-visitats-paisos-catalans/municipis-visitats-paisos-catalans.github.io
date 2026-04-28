@@ -49,6 +49,46 @@ export class Mapa implements AfterViewInit {
     private pathsCache: Path2D[] = [];
     private centroids: [number, number][] = [];
 
+    private needsDraw = false;
+
+    private _colors: any;
+
+    private get colors() {
+        if (!this._colors || this._colors._dark !== Utils.darkMode) {
+            this._colors = Utils.darkMode ? {
+                _dark: true,
+                // unvisited: '50, 100%, 93%',      // hsl(50, 100%, 93%) //
+                // stroke: '50, 50%, 75%',          // hsl(50, 50%, 75%) //
+                unvisited: { h: 217, s: 39, l: 45 },        // hsl(217, 39%, 18%) //
+                visited: { h: 50, s: 100, l: 50 },          // hsl(50, 100%, 50%) //
+                stroke: { h: 217, s: 39, l: 65 },           // hsl(211, 31%, 35%) //
+
+                labelVisited: { h: 50, s: 100, l: 0 },      // hsl(50, 100%, 0%) //
+                labelUnvisited: { h: 217, s: 100, l: 100 }  // hsl(217, 100%, 100%) //
+            } : {
+                _dark: false,
+                unvisited: { h: 50, s: 0, l: 100 },         // hsl(50, 0%, 100%) //
+                visited: { h: 50, s: 100, l: 50 },          // hsl(50, 100%, 50%) //
+                stroke: { h: 0, s: 0, l: 85 },          // hsl(0, 0%, 85%) //
+
+                labelVisited: { h: 50, s: 100, l: 0 },      // hsl(50, 100%, 0%) //
+                labelUnvisited: { h: 0, s: 0, l: 0 }        // hsl(0, 0%, 0%) //
+            };
+        }
+        return this._colors;
+    }
+
+    private scheduleDraw() {
+        if (this.needsDraw) return;
+
+        this.needsDraw = true;
+
+        requestAnimationFrame(() => {
+            this.needsDraw = false;
+            this.draw();
+        });
+    }
+
     ngAfterViewInit() {
         const canvas = this.canvasRef.nativeElement;
         this.ctx = canvas.getContext('2d')!;
@@ -84,7 +124,7 @@ export class Mapa implements AfterViewInit {
             }
 
             this.setupEvents();
-            this.draw();
+            this.scheduleDraw();
         });
     }
 
@@ -93,7 +133,7 @@ export class Mapa implements AfterViewInit {
         if (!this.data) return;
         this.render();
         this.buildCache();
-        this.draw();
+        this.scheduleDraw();
     }
 
     private render() {
@@ -160,7 +200,7 @@ export class Mapa implements AfterViewInit {
 
                 this.transform = clampedTransform;
                 this.saveTransform();
-                this.draw();
+                this.scheduleDraw();
             });
 
         d3.select(canvas).call(this.zoom);
@@ -170,14 +210,14 @@ export class Mapa implements AfterViewInit {
         const ctx = this.ctx;
         const { x, y, k } = this.transform;
 
+        const colors = this.colors;
+        const zonaCentre = this.getCenterZona();
+
         ctx.clearRect(0, 0, this.width, this.height);
 
         ctx.save();
         ctx.setTransform(k, 0, 0, k, x, y);
         ctx.lineWidth = 0.5 / k;
-
-        const zonaCentre = this.getCenterZona();
-        const colors = this.getColors();
 
         for (let i = 0; i < this.pathsCache.length; i++) {
             const p = this.pathsCache[i];
@@ -187,45 +227,24 @@ export class Mapa implements AfterViewInit {
             const isInactive = zonaCentre && f.properties['zona'] !== zonaCentre;
 
             const alpha = isInactive ? 0.3 : 1;
-
             const fill = isSelected ? colors.visited : colors.unvisited;
 
-            ctx.fillStyle = `hsla(${fill}, ${alpha})`;
-            ctx.strokeStyle = `hsla(${colors.stroke}, ${isInactive ? 0 : 1})`;
+            ctx.fillStyle = `hsla(${fill.h}, ${fill.s}%, ${fill.l}%, ${alpha})`;
+            ctx.strokeStyle = `hsla(${colors.stroke.h}, ${colors.stroke.s}%, ${colors.stroke.l}%, ${isInactive ? 0 : 1})`;
 
             ctx.fill(p);
             ctx.stroke(p);
         }
 
-        this.drawLabels(colors);
+        this.drawLabels(colors, zonaCentre);
 
         ctx.restore();
     }
-
-    private getColors() {
-        if (Utils.darkMode) {
-            return {
-                // unvisited: '50, 100%, 93%', // hsl(50, 100%, 93%) //
-                // stroke: '50, 50%, 75%',    // hsl(50, 50%, 75%) //
-                unvisited: '217, 39%, 45%', // hsl(217, 39%, 18%) //
-                visited: '50, 100%, 50%',   // hsl(50, 100%, 50%) //
-                stroke: '217, 39%, 65%',    // hsl(211, 31%, 35%) //
-                labelVisited: 'hsl(50, 100%, 15%)',
-                labelUnvisited: '#fff'
-            };
-        }
-
-        return {
-            unvisited: '50, 0%, 100%',  // hsl(50, 0%, 100%) //
-            visited: '50, 100%, 50%',   // hsl(50, 100%, 50%) //
-            stroke: '0, 0%, 85%',       // hsl(0, 0%, 85%) //
-            labelVisited: 'hsl(50, 100%, 15%)',
-            labelUnvisited: '#000'
-        };
-    }
-
     private getCenterZona(): string | null {
-        const centerScreen: [number, number] = [this.width / 2, this.height / 2];
+        const centerX = this.width / 2;
+        const centerY = this.height / 2;
+
+        const { x, y, k } = this.transform;
 
         let bestIndex = -1;
         let bestDist = Infinity;
@@ -234,10 +253,11 @@ export class Mapa implements AfterViewInit {
             const c = this.centroids[i];
             if (!isFinite(c[0]) || !isFinite(c[1])) continue;
 
-            const cScreen = this.transform.apply(c);
+            const sx = c[0] * k + x;
+            const sy = c[1] * k + y;
 
-            const dx = cScreen[0] - centerScreen[0];
-            const dy = cScreen[1] - centerScreen[1];
+            const dx = sx - centerX;
+            const dy = sy - centerY;
             const d = dx * dx + dy * dy;
 
             if (d < bestDist) {
@@ -251,68 +271,113 @@ export class Mapa implements AfterViewInit {
         return this.data.features[bestIndex].properties['zona'] || null;
     }
 
-    private drawLabels(colors: any) {
-        const k = this.transform.k;
-        const zoomLimitPintarLabels = this.m.esMobil ? 25 : 10;
-        if (k < zoomLimitPintarLabels) return;
-
-        const zonaCentre = this.getCenterZona();
-
-        const centerScreen: [number, number] = [this.width / 2, this.height / 2];
-        const radius = Math.min(this.width, this.height) * (this.m.esMobil ? 0.25 : 0.5);
+    private drawLabels(colors: any, zonaCentre: string | null) {
+        const { x, y, k } = this.transform;
+        const zoomLimit = this.m.esMobil ? 30 : 10;
+        if (k < zoomLimit) return;
 
         const ctx = this.ctx;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
 
-        const basePx = 14;
+        const fontSize = 12;
 
-        for (let i = 0; i < this.centroids.length; i++) {
+        let maxVisibleArea = 0;
+
+        // PASSADA 1: trobar max area
+        for (let i = 0; i < this.data.features.length; i++) {
             const f = this.data.features[i];
 
             if (zonaCentre && f.properties['zona'] !== zonaCentre) continue;
 
             const c = this.centroids[i];
-            if (!isFinite(c[0]) || !isFinite(c[1])) continue;
 
-            const cScreen = this.transform.apply(c);
+            const sx = c[0] * k + x;
+            const sy = c[1] * k + y;
 
-            const dx = cScreen[0] - centerScreen[0];
-            const dy = cScreen[1] - centerScreen[1];
-            const dist = Math.sqrt(dx * dx + dy * dy);
+            const margin = 200;
+            if (
+                sx < -margin || sx > this.width + margin ||
+                sy < -margin || sy > this.height + margin
+            ) continue;
+
+            const visiblePoly = this.getVisiblePolygonScreen(f);
+            if (!visiblePoly || visiblePoly.length < 3) continue;
+
+            const area = Math.abs(this.getPolygonAreaScreen(visiblePoly));
+            if (area > maxVisibleArea) maxVisibleArea = area;
+        }
+
+        // PASSADA 2: dibuixar
+        for (let i = 0; i < this.data.features.length; i++) {
+            const f = this.data.features[i];
+
+            if (zonaCentre && f.properties['zona'] !== zonaCentre) continue;
+
+            const c = this.centroids[i];
+
+            const sx = c[0] * k + x;
+            const sy = c[1] * k + y;
+
+            const margin = 200;
+            if (
+                sx < -margin || sx > this.width + margin ||
+                sy < -margin || sy > this.height + margin
+            ) continue;
+
+            const visiblePoly = this.getVisiblePolygonScreen(f);
+            if (!visiblePoly || visiblePoly.length < 3) continue;
+
+            const area = Math.abs(this.getPolygonAreaScreen(visiblePoly));
+
+            const tArea = Math.sqrt(maxVisibleArea > 0 ? area / maxVisibleArea : 0);
+            const zoomFactor = Math.min(1, k / (this.m.esMobil ? 35 : 15));
+            const scale = (0.5 + tArea * 0.9) * zoomFactor;
+
+            const labelScreen = this.getPolygonCentroidScreen(visiblePoly);
+            const labelWorld = this.transform.invert(labelScreen);
+
             const municipiVisitat = !!this.appState.municipisVisitats[f.id!];
 
-            // Eliminar els de fora del radi //
-            // if (dist > radius) continue;
+            const distToEdge = Math.min(
+                sx,
+                this.width - sx,
+                sy,
+                this.height - sy
+            );
 
-            const t = 1 - (dist / radius);
-            const scale = 0.8 + t * 0.4;
+            const t = Math.max(0, Math.min(1,
+                distToEdge / (Math.min(this.width, this.height) / 2)
+            ));
 
-            if (scale <= 0) continue;
+            const base = municipiVisitat ? colors.labelVisited : colors.labelUnvisited;
+            let { h, s, l } = base;
 
-            const lines = this.splitLabel(f.properties['name:ca'] || f.properties['name']);
+            if (l === 0) l = (1 - t) * 30;
+            else if (l === 100) l = 70 + t * 30;
 
             ctx.save();
-            ctx.translate(c[0], c[1]);
-            ctx.scale(scale / k, scale / k);
+            ctx.translate(labelWorld[0], labelWorld[1]);
 
-            ctx.fillStyle = municipiVisitat
-                ? colors.labelVisited
-                : colors.labelUnvisited;
-            
+            const zoomBoost = Math.pow(k, 0.05);
+            ctx.scale((scale * zoomBoost) / k, (scale * zoomBoost) / k);
+
+            ctx.fillStyle = `hsl(${h}, ${s}%, ${l}%)`;
+
             if (!municipiVisitat && Utils.darkMode) {
-                // Ombra //
-                ctx.shadowColor = 'hsl(217, 39%, 45%)';
+                ctx.shadowColor = `hsl(${colors.unvisited.h}, ${colors.unvisited.s}%, ${colors.unvisited.l}%)`;
                 ctx.shadowBlur = 4;
             }
 
-            ctx.font = `bold ${basePx}px sans-serif`;
+            ctx.font = `bold ${fontSize}px sans-serif`;
+
+            const lines = this.splitLabel(f.properties['name:ca'] || f.properties['name']);
 
             for (let j = 0; j < lines.length; j++) {
                 ctx.fillText(
                     lines[j],
                     0,
-                    (j - (lines.length - 1) / 2) * (basePx * 1.2)
+                    (j - (lines.length - 1) / 2) * (fontSize * 1.2)
                 );
             }
 
@@ -343,6 +408,156 @@ export class Mapa implements AfterViewInit {
             words.slice(0, bestSplit).join(' '),
             words.slice(bestSplit).join(' ')
         ];
+    }
+
+    private getVisiblePolygonScreen(feature: any): [number, number][] | null {
+        const geom = feature.geometry;
+        if (!geom) return null;
+
+        const polygons = geom.type === 'Polygon'
+            ? [geom.coordinates]
+            : geom.type === 'MultiPolygon'
+                ? geom.coordinates
+                : [];
+
+        let best: [number, number][] | null = null;
+        let bestArea = 0;
+
+        for (const polygon of polygons) {
+            const outerRing = polygon[0];
+            if (!outerRing) continue;
+
+            const screenRing: [number, number][] = [];
+
+            for (let i = 0; i < outerRing.length; i++) {
+                const coord = outerRing[i];
+                const projected = this.projection(coord);
+                if (!projected) continue;
+
+                const sx = projected[0] * this.transform.k + this.transform.x;
+                const sy = projected[1] * this.transform.k + this.transform.y;
+
+                screenRing.push([sx, sy]);
+            }
+
+            const clipped = this.clipPolygonToViewport(screenRing);
+            if (clipped.length < 3) continue;
+
+            const area = Math.abs(this.getPolygonAreaScreen(clipped));
+
+            if (area > bestArea) {
+                bestArea = area;
+                best = clipped;
+            }
+        }
+
+        return best;
+    }
+
+    private clipPolygonToViewport(poly: [number, number][]): [number, number][] {
+        let output = poly;
+
+        output = this.clipLeft(output, 0);
+        output = this.clipRight(output, this.width);
+        output = this.clipTop(output, 0);
+        output = this.clipBottom(output, this.height);
+
+        return output;
+    }
+
+    private clipLeft(poly: [number, number][], minX: number): [number, number][] {
+        return this.clipPolygon(poly, p => p[0] >= minX, (a, b) => {
+            const t = (minX - a[0]) / (b[0] - a[0]);
+            return [minX, a[1] + t * (b[1] - a[1])];
+        });
+    }
+
+    private clipRight(poly: [number, number][], maxX: number): [number, number][] {
+        return this.clipPolygon(poly, p => p[0] <= maxX, (a, b) => {
+            const t = (maxX - a[0]) / (b[0] - a[0]);
+            return [maxX, a[1] + t * (b[1] - a[1])];
+        });
+    }
+
+    private clipTop(poly: [number, number][], minY: number): [number, number][] {
+        return this.clipPolygon(poly, p => p[1] >= minY, (a, b) => {
+            const t = (minY - a[1]) / (b[1] - a[1]);
+            return [a[0] + t * (b[0] - a[0]), minY];
+        });
+    }
+
+    private clipBottom(poly: [number, number][], maxY: number): [number, number][] {
+        return this.clipPolygon(poly, p => p[1] <= maxY, (a, b) => {
+            const t = (maxY - a[1]) / (b[1] - a[1]);
+            return [a[0] + t * (b[0] - a[0]), maxY];
+        });
+    }
+
+    private clipPolygon(
+        poly: [number, number][],
+        inside: (p: [number, number]) => boolean,
+        intersect: (a: [number, number], b: [number, number]) => [number, number]
+    ): [number, number][] {
+        const result: [number, number][] = [];
+
+        for (let i = 0; i < poly.length; i++) {
+            const current = poly[i];
+            const previous = poly[(i - 1 + poly.length) % poly.length];
+
+            const currentInside = inside(current);
+            const previousInside = inside(previous);
+
+            if (currentInside) {
+                if (!previousInside) result.push(intersect(previous, current));
+                result.push(current);
+            } else if (previousInside) {
+                result.push(intersect(previous, current));
+            }
+        }
+
+        return result;
+    }
+
+    private getPolygonAreaScreen(poly: [number, number][]): number {
+        let area = 0;
+
+        for (let i = 0; i < poly.length; i++) {
+            const a = poly[i];
+            const b = poly[(i + 1) % poly.length];
+            area += a[0] * b[1] - b[0] * a[1];
+        }
+
+        return area / 2;
+    }
+
+    private getPolygonCentroidScreen(poly: [number, number][]): [number, number] {
+        let x = 0;
+        let y = 0;
+        let area = 0;
+
+        for (let i = 0; i < poly.length; i++) {
+            const a = poly[i];
+            const b = poly[(i + 1) % poly.length];
+
+            const cross = a[0] * b[1] - b[0] * a[1];
+
+            x += (a[0] + b[0]) * cross;
+            y += (a[1] + b[1]) * cross;
+            area += cross;
+        }
+
+        area *= 0.5;
+
+        if (Math.abs(area) < 0.0001) {
+            let sx = 0, sy = 0;
+            for (const p of poly) {
+                sx += p[0];
+                sy += p[1];
+            }
+            return [sx / poly.length, sy / poly.length];
+        }
+
+        return [x / (6 * area), y / (6 * area)];
     }
 
     private setupEvents() {
@@ -393,8 +608,8 @@ export class Mapa implements AfterViewInit {
                 const f = this.data.features[i];
 
                 this.onLongClick(<string>f.id);
-                
-                this.draw();
+
+                this.scheduleDraw();
 
                 longPress = true;
             }, LONG_PRESS_MS);
@@ -446,10 +661,9 @@ export class Mapa implements AfterViewInit {
     }
 
 
-
     // Clicks //
     private onClick(id: string) {
-        
+
         alert(this.appState.municipis[id].properties['name']);
 
         this.mapState.municipiSeleccionat$.next(this.appState.municipis[id]);
