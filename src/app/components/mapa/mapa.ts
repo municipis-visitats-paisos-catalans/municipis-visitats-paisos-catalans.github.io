@@ -131,7 +131,34 @@ export class Mapa implements AfterViewInit {
         this.zoom = d3.zoom<HTMLCanvasElement, unknown>()
             .scaleExtent([1, 100])
             .on('zoom', (e: any) => {
-                this.transform = e.transform;
+
+                let { x, y, k } = e.transform;
+
+                const padding = 50 * (k ** 0.25);
+                const paddingTop = 96;
+
+                const scaledWidth = this.width * k;
+                const scaledHeight = this.height * k;
+
+                const minX = this.width - padding - scaledWidth;
+                const maxX = padding;
+
+                const minY = this.height - padding - scaledHeight;
+                const maxY = padding + paddingTop;
+
+                const clampedX = Math.max(minX, Math.min(maxX, x));
+                const clampedY = Math.max(minY, Math.min(maxY, y));
+
+                const clampedTransform = d3.zoomIdentity
+                    .translate(clampedX, clampedY)
+                    .scale(k);
+
+                if (clampedX !== x || clampedY !== y) {
+                    d3.select(canvas).call(this.zoom.transform, clampedTransform);
+                    return;
+                }
+
+                this.transform = clampedTransform;
                 this.saveTransform();
                 this.draw();
             });
@@ -183,7 +210,7 @@ export class Mapa implements AfterViewInit {
                 unvisited: '217, 39%, 45%', // hsl(217, 39%, 18%) //
                 visited: '50, 100%, 50%',   // hsl(50, 100%, 50%) //
                 stroke: '217, 39%, 65%',    // hsl(211, 31%, 35%) //
-                labelVisited: '#000',
+                labelVisited: 'hsl(50, 100%, 15%)',
                 labelUnvisited: '#fff'
             };
         }
@@ -192,7 +219,7 @@ export class Mapa implements AfterViewInit {
             unvisited: '50, 0%, 100%',  // hsl(50, 0%, 100%) //
             visited: '50, 100%, 50%',   // hsl(50, 100%, 50%) //
             stroke: '0, 0%, 85%',       // hsl(0, 0%, 85%) //
-            labelVisited: '#000',
+            labelVisited: 'hsl(50, 100%, 15%)',
             labelUnvisited: '#000'
         };
     }
