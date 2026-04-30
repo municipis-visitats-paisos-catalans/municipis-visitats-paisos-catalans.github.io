@@ -1,0 +1,17 @@
+@if (visible) {
+
+    <div class="backdrop"
+        [class.tancant]="animantTancament"
+        (click)="onBackdropClick()">
+
+        <div class="content"
+            [class.tancant]="animantTancament"
+            (click)="$event.stopPropagation()">
+
+            <jmp-info-municipi />
+
+        </div>
+
+    </div>
+
+}

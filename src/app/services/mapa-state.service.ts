@@ -3,7 +3,7 @@ import { BehaviorSubject } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class MapaStateService {
-    municipiSeleccionat$ = new BehaviorSubject<any>(null);
+    idMunicipiSeleccionat$ = new BehaviorSubject<string | null>(null);
     municipiAlCentre$ = new BehaviorSubject<any>(null);
 
 }

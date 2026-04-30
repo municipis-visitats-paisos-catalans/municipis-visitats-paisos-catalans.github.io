@@ -1,0 +1,17 @@
+@if (municipi) {
+
+    <section class="card p-4" [class.visitat]="municipi.dataVisita">
+        <div class="silueta-municipi">
+            <svg [attr.viewBox]="viewBox"><path [attr.d]="pathD" /></svg>
+        </div>
+
+        <div class="dades">
+
+            <div class="data-visita">{{textDataVisita}}</div>
+            <div class="nom">{{municipi.nom}}</div>
+
+        </div>
+
+    </section>
+
+}

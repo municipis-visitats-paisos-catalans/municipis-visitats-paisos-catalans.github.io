@@ -664,9 +664,7 @@ export class Mapa implements AfterViewInit {
     // Clicks //
     private onClick(id: string) {
 
-        alert(this.appState.municipis[id].properties['name']);
-
-        this.mapState.municipiSeleccionat$.next(this.appState.municipis[id]);
+        this.mapState.idMunicipiSeleccionat$.next(id);
 
         // <El modal s'obre sol al fer el .next()> //
     }
