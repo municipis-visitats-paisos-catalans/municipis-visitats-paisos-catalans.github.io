@@ -1,10 +1,10 @@
 @if (visible) {
 
     <div class="backdrop"
-        [class.tancant]="animantTancament"
         (click)="onBackdropClick()">
 
         <div class="content"
+            [class.obert]="obert"
             [class.tancant]="animantTancament"
             (click)="$event.stopPropagation()">
 

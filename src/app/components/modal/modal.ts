@@ -1,16 +1,8 @@
-import {
-    Component,
-    ChangeDetectionStrategy,
-    inject,
-    OnInit,
-    OnDestroy
-} from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MapaStateService } from 'src/app/services/mapa-state.service';
-import { AppStateService } from 'src/app/services/app-state.service';
+import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { Subject, takeUntil } from 'rxjs';
 import { InfoMunicipi } from 'src/app/components/info-municipi/info-municipi';
-import { ActivatedRoute, Router } from '@angular/router';
+import { MapaStateService } from 'src/app/services/mapa-state.service';
 
 @Component({
     selector: 'jmp-modal',
@@ -27,6 +19,7 @@ export class ModalComponent implements OnInit, OnDestroy {
     private destroy$ = new Subject<void>();
 
     visible = false;
+    obert = false;
     animantTancament = false;
 
     ngOnInit(): void {
@@ -36,6 +29,7 @@ export class ModalComponent implements OnInit, OnDestroy {
                 if (id) {
                     this.visible = true;
                     this.animantTancament = false;
+                    setTimeout(() => this.obert = true);
                 } else {
                     this.tancar();
                 }
@@ -45,6 +39,7 @@ export class ModalComponent implements OnInit, OnDestroy {
     tancar(): void {
         if (!this.visible) return;
 
+        this.obert = false;
         this.animantTancament = true;
 
         setTimeout(() => {
@@ -54,6 +49,7 @@ export class ModalComponent implements OnInit, OnDestroy {
     }
 
     onBackdropClick(): void {
+        if (!this.obert) return; // Primer frame //
         this.mapState.idMunicipiSeleccionat$.next(null);
     }
 
