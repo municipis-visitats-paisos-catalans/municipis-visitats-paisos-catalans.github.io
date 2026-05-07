@@ -2,7 +2,9 @@ import { CommonModule } from '@angular/common';
 import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { Subject, takeUntil } from 'rxjs';
 import { InfoMunicipi } from 'src/app/components/info-municipi/info-municipi';
+import { AppStateService } from 'src/app/services/app-state.service';
 import { MapaStateService } from 'src/app/services/mapa-state.service';
+import { Utils } from 'src/app/shared/utils';
 
 @Component({
     selector: 'jmp-modal',
@@ -16,20 +18,24 @@ import { MapaStateService } from 'src/app/services/mapa-state.service';
 export class ModalComponent implements OnInit, OnDestroy {
 
     private mapState = inject(MapaStateService);
+    private appState = inject(AppStateService);
     private destroy$ = new Subject<void>();
 
     visible = false;
     obert = false;
     animantTancament = false;
 
-    ngOnInit(): void {
+    async ngOnInit() {
+        // Retardar l'execució del codi fins que municipis estigui carregat //
+        await Utils.waitUntil(() => Object.keys(this.appState.municipis).length);
+
         this.mapState.idMunicipiSeleccionat$
             .pipe(takeUntil(this.destroy$))
             .subscribe(id => {
                 if (id) {
                     this.visible = true;
                     this.animantTancament = false;
-                    setTimeout(() => this.obert = true);
+                    setTimeout(() => this.obert = true, 10); // Assegurar animació //
                 } else {
                     this.tancar();
                 }
