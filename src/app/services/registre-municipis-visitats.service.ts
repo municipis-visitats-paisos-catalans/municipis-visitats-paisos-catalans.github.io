@@ -5,19 +5,19 @@ import { AppStateService } from "src/app/services/app-state.service";
 export class RegistreMunicipisVisitatsService {
     private readonly CLAU = "municipisVisitats";
 
-    private ass = inject(AppStateService);
+    private appState = inject(AppStateService);
 
     public carregar() {
         let raw = localStorage.getItem(this.CLAU);
         if (!raw) return;
 
         try {
-            this.ass.municipisVisitats = JSON.parse(raw);
+            this.appState.municipisVisitats = JSON.parse(raw);
         } catch { }
     }
 
     public guardar() {
-        localStorage.setItem(this.CLAU, JSON.stringify(this.ass.municipisVisitats));
+        localStorage.setItem(this.CLAU, JSON.stringify(this.appState.municipisVisitats));
     }
 
 }

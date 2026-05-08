@@ -14,7 +14,7 @@ import { FeatureCollectionType, GeoService } from 'src/app/services/geo.service'
 import { MainService } from 'src/app/services/main.service';
 import { MapaStateService } from 'src/app/services/mapa-state.service';
 import { RegistreMunicipisVisitatsService } from 'src/app/services/registre-municipis-visitats.service';
-import { Utils } from 'src/app/shared/utils';
+import { Utils } from 'src/app/shared/utils/utils';
 
 @Component({
     selector: 'jmp-mapa',
@@ -59,9 +59,9 @@ export class Mapa implements AfterViewInit {
                 _dark: true,
                 // unvisited: '50, 100%, 93%',      // hsl(50, 100%, 93%) //
                 // stroke: '50, 50%, 75%',          // hsl(50, 50%, 75%) //
-                unvisited: { h: 217, s: 39, l: 45 },        // hsl(217, 39%, 18%) //
+                unvisited: { h: 217, s: 39, l: 45 },        // hsl(217, 39%, 45%) //
                 visited: { h: 50, s: 100, l: 50 },          // hsl(50, 100%, 50%) //
-                stroke: { h: 217, s: 39, l: 65 },           // hsl(211, 31%, 35%) //
+                stroke: { h: 217, s: 39, l: 65 },           // hsl(217, 39%, 65%) //
 
                 labelVisited: { h: 50, s: 100, l: 0 },      // hsl(50, 100%, 0%) //
                 labelUnvisited: { h: 217, s: 100, l: 100 }  // hsl(217, 100%, 100%) //
@@ -69,7 +69,7 @@ export class Mapa implements AfterViewInit {
                 _dark: false,
                 unvisited: { h: 50, s: 0, l: 100 },         // hsl(50, 0%, 100%) //
                 visited: { h: 50, s: 100, l: 50 },          // hsl(50, 100%, 50%) //
-                stroke: { h: 0, s: 0, l: 85 },          // hsl(0, 0%, 85%) //
+                stroke: { h: 0, s: 0, l: 85 },              // hsl(0, 0%, 85%) //
 
                 labelVisited: { h: 50, s: 100, l: 0 },      // hsl(50, 100%, 0%) //
                 labelUnvisited: { h: 0, s: 0, l: 0 }        // hsl(0, 0%, 0%) //
@@ -663,10 +663,7 @@ export class Mapa implements AfterViewInit {
 
     // Clicks //
     private onClick(id: string) {
-
         this.mapState.idMunicipiSeleccionat$.next(id);
-
-        // <El modal s'obre sol al fer el .next()> //
     }
     private onLongClick(id: string) {
         this.appState.toggleVisita(id);

@@ -3,6 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { skip, Subject, takeUntil } from 'rxjs';
 import { ModalComponent } from 'src/app/components/modal/modal';
 import { MapaStateService } from 'src/app/services/mapa-state.service';
+import { MunicipiUtils } from 'src/app/shared/utils/municipi.utils';
 import { Mapa } from './components/mapa/mapa';
 
 @Component({
@@ -27,14 +28,14 @@ export class App implements OnInit {
             .pipe(takeUntil(this.destroy$))
             .subscribe(() => {
                 let id = location.pathname.split("/")[1] || null;
-                this.mapState.idMunicipiSeleccionat$.next(id ? `relation/${id}` : null);
+                this.mapState.idMunicipiSeleccionat$.next(id ? MunicipiUtils.construirId(id) : null);
             });
 
         // estat -> URL //
         this.mapState.idMunicipiSeleccionat$
             .pipe(takeUntil(this.destroy$), skip(1))
             .subscribe(id => {
-                if (id) id = id.replace("relation/", "");
+                if (id) id = MunicipiUtils.simplificarId(id);
                 this.router.navigateByUrl(id ?? "");
             });
     }

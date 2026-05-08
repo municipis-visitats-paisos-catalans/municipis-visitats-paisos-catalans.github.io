@@ -4,7 +4,7 @@ import { Subject, takeUntil } from 'rxjs';
 import { InfoMunicipi } from 'src/app/components/info-municipi/info-municipi';
 import { AppStateService } from 'src/app/services/app-state.service';
 import { MapaStateService } from 'src/app/services/mapa-state.service';
-import { Utils } from 'src/app/shared/utils';
+import { Utils } from 'src/app/shared/utils/utils';
 
 @Component({
     selector: 'jmp-modal',
