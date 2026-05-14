@@ -1,11 +1,25 @@
 @import "src/styles.scss";
 
+// Colors //
+.card.visitat {
+    background-color: hsla(51, 100%, 85%, 0.7);
+    --svg-fill: hsl(51, 100%, 50%);
+    --svg-stroke: hsl(51, 100%, 31%);
+}
+.card:not(.visitat) {
+    background-color: hsla(216, 100%, 85%, 0.7);
+    --svg-fill: light-dark(white, hsl(217, 39%, 45%));
+    --svg-stroke: light-dark(hsl(0, 0%, 85%), hsl(217, 100%, 31%));
+
+    .data-visita {
+        visibility: hidden;
+    }
+}
+
+// Estils //
 .card {
     width: 400px;
     max-width: 100%;
-
-    &.visitat { background-color: hsla(51, 100%, 85%, 0.7); }
-    &:not(.visitat) { background-color: hsla(216, 100%, 85%, 0.7); }
     
     border-radius: 2rem;
 
@@ -14,6 +28,8 @@
     gap: 1rem;
 
     text-align: center;
+
+    transition: background-color 0.2s;
 
 
     .silueta-municipi {
@@ -26,30 +42,45 @@
             path {
                 vector-effect: non-scaling-stroke;
                 stroke-width: 1;
+                fill: var(--svg-fill);
+                stroke: var(--svg-stroke);
+                transition: fill 0.2s, stroke 0.2s;
             }
         }
-    }
-
-    &.visitat .silueta-municipi svg path {
-        fill: hsl(51, 100%, 50%);
-        stroke: hsl(51, 100%, 31%);
-    }
-    &:not(.visitat) .silueta-municipi svg path {
-        fill: light-dark(white, hsl(217, 39%, 45%));
-        stroke: light-dark(hsl(0, 0%, 85%), hsl(217, 100%, 31%));
     }
 
     .dades {
         font-size: 1rem;
 
+        .boto-visitar {
+            font-size: 1.2em;
+            border-radius: 2rem;
+            padding: 0.3rem 0.7rem;
+
+            transition: all 0.3s;
+        }
+
         .data-visita {
             font-size: 0.9em;
-            color: gray;
+            color: rgb(142, 121, 0);
             font-style: italic;
         }
         .nom {
             font-size: 1.5em;
             font-weight: bold;
         }
+    }
+}
+
+.card.visitat {
+    .boto-visitar {
+        background-color: hsl(120, 100%, 35%);
+        color: white;
+    }
+}
+.card:not(.visitat) {
+    .boto-visitar {
+        color: hsl(0, 100%, 25%);
+        background-color: hsla(0, 100%, 35%, 0.15);
     }
 }

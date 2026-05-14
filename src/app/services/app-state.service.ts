@@ -1,4 +1,5 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
+import { MapaStateService } from 'src/app/services/mapa-state.service';
 import { MunicipiUtils } from 'src/app/shared/utils/municipi.utils';
 import { StorageUtils } from 'src/app/shared/utils/storage.utils';
 
@@ -7,6 +8,7 @@ export class AppStateService {
 
     municipis: Record<string, any> = {};
     municipisVisitats: Record<string, string> = {};
+    private mapaState = inject(MapaStateService);
 
 
     public toggleVisita(id: string) {
@@ -30,6 +32,8 @@ export class AppStateService {
 
             StorageUtils.removeCookie(nomCookie);
         }
+
+        this.mapaState.actualitzarMapa$.next();
     }
 
 }

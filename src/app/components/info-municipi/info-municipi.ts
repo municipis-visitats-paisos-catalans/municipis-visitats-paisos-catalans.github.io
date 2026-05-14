@@ -1,7 +1,7 @@
 import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 import * as d3 from 'd3';
 import { Subscription } from 'rxjs';
-import { Municipi } from 'src/app/models/municipi.model';
+import { Municipi } from 'src/app/models/municipi';
 import { AppStateService } from 'src/app/services/app-state.service';
 import { MapaStateService } from 'src/app/services/mapa-state.service';
 

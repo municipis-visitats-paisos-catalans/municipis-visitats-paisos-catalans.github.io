@@ -35,4 +35,8 @@ export class Municipi {
         let data = this.appState.municipisVisitats[this.id] || null;
         return data ? new Date(data) : null;
     }
+
+    public toggleVisita() {
+        this.appState.toggleVisita(this.id);
+    }
 }

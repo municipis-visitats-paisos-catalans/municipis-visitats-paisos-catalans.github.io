@@ -1,13 +1,22 @@
 @if (municipi) {
 
     <section class="card p-4" [class.visitat]="municipi.dataVisita">
-        <div class="silueta-municipi">
+        <button class="rs silueta-municipi" (click)="municipi.toggleVisita()">
             <svg [attr.viewBox]="viewBox"><path [attr.d]="pathD" /></svg>
-        </div>
+        </button>
 
         <div class="dades">
+            <button class="boto-visitar boto mb-2" (click)="municipi.toggleVisita()">
+                @if (municipi.dataVisita) {
+                    <i class="fa-solid fa-map-pin me-1"></i>
+                    Visitat
+                } @else {
+                    No visitat
+                }
+            </button>
 
             <div class="data-visita">{{textDataVisita}}</div>
+            
             <div class="nom">{{municipi.nom}}</div>
 
         </div>

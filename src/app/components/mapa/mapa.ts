@@ -125,6 +125,12 @@ export class Mapa implements AfterViewInit {
 
             this.setupEvents();
             this.scheduleDraw();
+
+
+            this.mapState.actualitzarMapa$
+                .subscribe(() => {
+                    this.scheduleDraw();
+                });
         });
     }
 
