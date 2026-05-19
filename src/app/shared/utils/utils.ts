@@ -15,4 +15,8 @@ export class Utils {
             await new Promise(resolve => setTimeout(resolve, 100));
     }
 
+    public static objTeValors(obj: object): boolean {
+        return !!obj && Object.keys(obj).length > 0;
+    }
+
 }

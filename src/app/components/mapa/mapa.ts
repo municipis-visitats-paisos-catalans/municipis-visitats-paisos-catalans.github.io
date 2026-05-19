@@ -13,7 +13,7 @@ import { AppStateService } from 'src/app/services/app-state.service';
 import { FeatureCollectionType, GeoService } from 'src/app/services/geo.service';
 import { MainService } from 'src/app/services/main.service';
 import { MapaStateService } from 'src/app/services/mapa-state.service';
-import { RegistreMunicipisVisitatsService } from 'src/app/services/registre-municipis-visitats.service';
+import { PersistenciaMunicipisVisitatsService } from 'src/app/services/persistencia-municipis-visitats.service';
 import { Utils } from 'src/app/shared/utils/utils';
 
 @Component({
@@ -31,7 +31,7 @@ export class Mapa implements AfterViewInit {
     private geo = inject(GeoService);
     private mapState = inject(MapaStateService);
     private appState = inject(AppStateService);
-    private registreMunicipisVisitats = inject(RegistreMunicipisVisitatsService);
+    private persistencia = inject(PersistenciaMunicipisVisitatsService);
     private m = inject(MainService);
 
     private ctx!: CanvasRenderingContext2D;
@@ -102,7 +102,7 @@ export class Mapa implements AfterViewInit {
                 this.appState.municipis[feature.id!] = feature;
             }
             // Omplir objecte municipisVisitats //
-            this.registreMunicipisVisitats.carregar();
+            this.persistencia.carregar();
 
 
             this.render();
@@ -229,7 +229,7 @@ export class Mapa implements AfterViewInit {
             const p = this.pathsCache[i];
             const f = this.data.features[i];
 
-            const isSelected = this.appState.municipisVisitats[f.id!];
+            const isSelected = this.appState.municipisAmbDades[f.id!]?.data;
             const isInactive = zonaCentre && f.properties['zona'] !== zonaCentre;
 
             const alpha = isInactive ? 0.3 : 1;
@@ -343,7 +343,7 @@ export class Mapa implements AfterViewInit {
             const labelScreen = this.getPolygonCentroidScreen(visiblePoly);
             const labelWorld = this.transform.invert(labelScreen);
 
-            const municipiVisitat = !!this.appState.municipisVisitats[f.id!];
+            const municipiVisitat = !!this.appState.municipisAmbDades[f.id!]?.data;
 
             const distToEdge = Math.min(
                 sx,
@@ -674,6 +674,6 @@ export class Mapa implements AfterViewInit {
     private onLongClick(id: string) {
         this.appState.toggleVisita(id);
 
-        this.registreMunicipisVisitats.guardar();
+        this.persistencia.guardar();
     }
 }

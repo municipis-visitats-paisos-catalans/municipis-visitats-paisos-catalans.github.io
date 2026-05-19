@@ -32,8 +32,15 @@ export class Municipi {
     }
 
     public get dataVisita(): Date | null {
-        let data = this.appState.municipisVisitats[this.id] || null;
+        let data = this.appState.municipisAmbDades[this.id]?.data || null;
         return data ? new Date(data) : null;
+    }
+
+    public get nota(): string {
+        return this.appState.getNota(this.id);
+    }
+    public set nota(text: string) {
+        this.appState.setNota(this.id, text);
     }
 
     public toggleVisita() {

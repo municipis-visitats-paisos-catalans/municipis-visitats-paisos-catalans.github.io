@@ -1,13 +1,25 @@
+import { TextFieldModule } from '@angular/cdk/text-field';
 import { Component, inject, OnDestroy, OnInit } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { MatRipple } from "@angular/material/core";
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 import * as d3 from 'd3';
 import { Subscription } from 'rxjs';
 import { Municipi } from 'src/app/models/municipi';
 import { AppStateService } from 'src/app/services/app-state.service';
 import { MapaStateService } from 'src/app/services/mapa-state.service';
+import { PersistenciaMunicipisVisitatsService } from 'src/app/services/persistencia-municipis-visitats.service';
 
 @Component({
     selector: 'jmp-info-municipi',
-    imports: [],
+    imports: [
+        MatRipple,
+        MatFormFieldModule,
+        MatInputModule,
+        TextFieldModule,
+        FormsModule,
+    ],
     templateUrl: './info-municipi.html',
     styleUrl: './info-municipi.scss'
 })
@@ -15,6 +27,7 @@ export class InfoMunicipi implements OnInit, OnDestroy {
 
     public mapState = inject(MapaStateService);
     public appState = inject(AppStateService);
+    public persistencia = inject(PersistenciaMunicipisVisitatsService);
 
     public subscripcioMunicipi: Subscription;
 
@@ -70,6 +83,11 @@ export class InfoMunicipi implements OnInit, OnDestroy {
 
         // ViewBox exacte al contingut
         this.viewBox = `${x0} ${y0} ${width} ${height}`;
+    }
+
+    toggleVisita() {
+        this.municipi.toggleVisita();
+        this.persistencia.guardar();
     }
 
 }

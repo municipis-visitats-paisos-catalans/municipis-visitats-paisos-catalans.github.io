@@ -2,7 +2,7 @@ import { inject, Injectable } from "@angular/core";
 import { AppStateService } from "src/app/services/app-state.service";
 
 @Injectable({ providedIn: 'root' })
-export class RegistreMunicipisVisitatsService {
+export class PersistenciaMunicipisVisitatsService {
     private readonly CLAU = "municipisVisitats";
 
     private appState = inject(AppStateService);
@@ -12,12 +12,14 @@ export class RegistreMunicipisVisitatsService {
         if (!raw) return;
 
         try {
-            this.appState.municipisVisitats = JSON.parse(raw);
+            this.appState.municipisAmbDades = JSON.parse(raw);
         } catch { }
     }
 
     public guardar() {
-        localStorage.setItem(this.CLAU, JSON.stringify(this.appState.municipisVisitats));
+        localStorage.setItem(this.CLAU, JSON.stringify(this.appState.municipisAmbDades));
+        
+        // console.log(JSON.stringify(this.appState.municipisAmbDades));
     }
 
 }

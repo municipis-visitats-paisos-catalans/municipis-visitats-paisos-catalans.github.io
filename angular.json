@@ -44,6 +44,7 @@
               }
             ],
             "styles": [
+              "src/app/styles/libraries/material-custom.css",
               "src/app/styles/libraries/bootstrap-custom.scss",
               "node_modules/primeicons/primeicons.css",
               "src/styles.scss"

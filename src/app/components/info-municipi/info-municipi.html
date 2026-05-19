@@ -1,12 +1,12 @@
 @if (municipi) {
 
-    <section class="card p-4" [class.visitat]="municipi.dataVisita">
-        <button class="rs silueta-municipi" (click)="municipi.toggleVisita()">
+    <section class="card" [class.visitat]="municipi.dataVisita">
+        <button class="rs silueta-municipi" (click)="toggleVisita()" matRipple>
             <svg [attr.viewBox]="viewBox"><path [attr.d]="pathD" /></svg>
         </button>
 
         <div class="dades">
-            <button class="boto-visitar boto mb-2" (click)="municipi.toggleVisita()">
+            <button class="boto-visitar boto mb-2" (click)="toggleVisita()" matRipple>
                 @if (municipi.dataVisita) {
                     <i class="fa-solid fa-map-pin me-1"></i>
                     Visitat
@@ -18,6 +18,12 @@
             <div class="data-visita">{{textDataVisita}}</div>
             
             <div class="nom">{{municipi.nom}}</div>
+
+            
+            <mat-form-field class="notes mt-3">
+                <mat-label>Notes</mat-label>
+                <textarea matInput cdkTextareaAutosize [(ngModel)]="municipi.nota" (change)="persistencia.guardar()"></textarea>
+            </mat-form-field>
 
         </div>
 

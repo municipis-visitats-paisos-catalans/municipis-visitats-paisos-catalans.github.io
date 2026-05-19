@@ -27,7 +27,7 @@ export class ModalComponent implements OnInit, OnDestroy {
 
     async ngOnInit() {
         // Retardar l'execució del codi fins que municipis estigui carregat //
-        await Utils.waitUntil(() => Object.keys(this.appState.municipis).length);
+        await Utils.waitUntil(() => Utils.objTeValors(this.appState.municipis));
 
         this.mapState.idMunicipiSeleccionat$
             .pipe(takeUntil(this.destroy$))
