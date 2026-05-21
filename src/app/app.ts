@@ -27,16 +27,15 @@ export class App implements OnInit {
         this.route.paramMap
             .pipe(takeUntil(this.destroy$))
             .subscribe(() => {
-                let id = location.pathname.split("/")[1] || null;
-                this.mapState.idMunicipiSeleccionat$.next(id ? MunicipiUtils.construirId(id) : null);
+                let id = parseInt(location.pathname.split("/")[1]) || null;
+                this.mapState.idMunicipiSeleccionat$.next(id);
             });
 
         // estat -> URL //
         this.mapState.idMunicipiSeleccionat$
             .pipe(takeUntil(this.destroy$), skip(1))
-            .subscribe(id => {
-                if (id) id = MunicipiUtils.simplificarId(id);
-                this.router.navigateByUrl(id ?? "");
+            .subscribe((id: number | null) => {
+                this.router.navigateByUrl(id?.toString() ?? "");
             });
     }
 

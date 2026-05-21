@@ -35,11 +35,10 @@ export class InfoMunicipi implements OnInit, OnDestroy {
 
 
     ngOnInit() {
-        this.subscripcioMunicipi = this.mapState.idMunicipiSeleccionat$.subscribe((id: string | null) => {
-            let feature = id ? this.appState.municipis[id] : null;
-            if (!feature) return;
+        this.subscripcioMunicipi = this.mapState.idMunicipiSeleccionat$.subscribe((id: number | null) => {
+            if (!id) return;
 
-            this.municipi = new Municipi(feature, this.appState);
+            this.municipi = this.appState.municipis[id];
 
             this.generarSiluetaMunicipiPath();
         });
