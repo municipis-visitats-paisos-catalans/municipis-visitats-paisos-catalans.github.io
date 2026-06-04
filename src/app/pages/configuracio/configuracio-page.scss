@@ -1,0 +1,79 @@
+@import "src/styles.scss";
+
+
+:host {
+    display: flex;
+    flex-direction: column;
+    min-height: 100dvh;
+
+    background-color: light-dark(hsl(192, 100%, 80%), hsl(219, 100%, 9%));
+}
+
+header {
+    position: fixed;
+    width: 100%;
+    height: 5rem;
+    backdrop-filter: blur(20px);
+
+    display: flex;
+    align-items: center;
+
+    @include mobil { height: 4rem; }
+
+    z-index: 1000;
+    
+    .boto-back {
+        position: absolute;
+        font-size: 2rem;
+        color: light-dark(hsl(192, 100%, 24%), hsl(219, 100%, 87%));
+        
+        width: 7rem;
+        height: 5rem;
+        
+        @include mobil {
+            width: 5rem;
+            height: 4rem;
+        }
+    }
+    
+    .titol-header {
+        width: 100%;
+        height: 100%;
+
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        
+        font-size: calc(1.325rem + 1.2vw);
+        @include mobil { font-size: 1.2rem; }
+
+        color: light-dark(hsl(192, 100%, 24%), white);
+        font-weight: bold;
+
+        padding: 0.5rem 5.5rem;
+    }
+}
+
+.content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    flex: 1;
+    
+    padding: 1rem;
+    padding-top: 5.5rem;
+
+    font-size: 1.5rem;
+
+    color: light-dark(hsl(192, 100%, 24%), white);
+
+
+    .copia-seguretat {
+        padding: 1rem;
+        border-radius: 2rem;
+        background-color: light-dark(hsla(192, 100%, 70%, 0.6), hsla(219, 100%, 70%, 0.2));
+
+        text-align: center;
+    }
+}

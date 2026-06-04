@@ -38,7 +38,6 @@ export class Mapa implements AfterViewInit {
 
     private ctx!: CanvasRenderingContext2D;
 
-    private data!: FeatureCollectionType;
     private projection!: d3.GeoProjection;
     private path!: d3.GeoPath<any, any>;
 
@@ -95,19 +94,9 @@ export class Mapa implements AfterViewInit {
         const canvas = this.canvasRef.nativeElement;
         this.ctx = canvas.getContext('2d')!;
 
-        this.geo.load().subscribe((d) => {
-            this.data = d;
+        this.geo.load().subscribe(async () => {
 
-            // Omplir objecte municipis //
-            this.appState.municipis = {};
-            for (const feature of this.data.features) {
-                feature.id = MunicipiUtils.simplificarId(feature.id + "");
-                delete feature.properties["@id"];
-                this.appState.municipis[feature.id!] = new Municipi(feature, this.appState);
-            }
-            // Omplir objecte municipisVisitats //
-            this.persistencia.carregar();
-
+            await Utils.waitUntil(() => Object.keys(this.appState.municipis).length);
 
             this.render();
             this.buildCache();
@@ -140,7 +129,7 @@ export class Mapa implements AfterViewInit {
 
     @HostListener('window:resize')
     resize() {
-        if (!this.data) return;
+        if (!this.appState.geoData) return;
         this.render();
         this.buildCache();
         this.scheduleDraw();
@@ -156,16 +145,16 @@ export class Mapa implements AfterViewInit {
         canvas.width = this.width;
         canvas.height = this.height;
 
-        this.projection = d3.geoMercator().fitSize([this.width, this.height], this.data);
+        this.projection = d3.geoMercator().fitSize([this.width, this.height], this.appState.geoData);
         this.path = d3.geoPath(this.projection);
     }
 
     private buildCache() {
-        this.pathsCache = new Array(this.data.features.length);
-        this.centroids = new Array(this.data.features.length);
+        this.pathsCache = new Array(this.appState.geoData.features.length);
+        this.centroids = new Array(this.appState.geoData.features.length);
 
-        for (let i = 0; i < this.data.features.length; i++) {
-            const f = this.data.features[i];
+        for (let i = 0; i < this.appState.geoData.features.length; i++) {
+            const f = this.appState.geoData.features[i];
 
             const d = this.path(f);
             this.pathsCache[i] = new Path2D(d || '');
@@ -231,7 +220,7 @@ export class Mapa implements AfterViewInit {
 
         for (let i = 0; i < this.pathsCache.length; i++) {
             const p = this.pathsCache[i];
-            const f = this.data.features[i];
+            const f = this.appState.geoData.features[i];
 
             const isSelected = !!this.appState.municipis[f.id!].dataVisita;
             const isInactive = zonaCentre && f.properties['zona'] !== zonaCentre;
@@ -278,7 +267,7 @@ export class Mapa implements AfterViewInit {
 
         if (bestIndex === -1) return null;
 
-        return this.data.features[bestIndex].properties['zona'] || null;
+        return this.appState.geoData.features[bestIndex].properties['zona'] || null;
     }
 
     private drawLabels(colors: any, zonaCentre: string | null) {
@@ -295,8 +284,8 @@ export class Mapa implements AfterViewInit {
         let maxVisibleArea = 0;
 
         // PASSADA 1: trobar max area
-        for (let i = 0; i < this.data.features.length; i++) {
-            const f = this.data.features[i];
+        for (let i = 0; i < this.appState.geoData.features.length; i++) {
+            const f = this.appState.geoData.features[i];
 
             if (zonaCentre && f.properties['zona'] !== zonaCentre) continue;
 
@@ -319,8 +308,8 @@ export class Mapa implements AfterViewInit {
         }
 
         // PASSADA 2: dibuixar
-        for (let i = 0; i < this.data.features.length; i++) {
-            const f = this.data.features[i];
+        for (let i = 0; i < this.appState.geoData.features.length; i++) {
+            const f = this.appState.geoData.features[i];
 
             if (zonaCentre && f.properties['zona'] !== zonaCentre) continue;
 
@@ -615,7 +604,7 @@ export class Mapa implements AfterViewInit {
                 const i = getIndex(startX, startY);
                 if (i === null) return;
 
-                const f = this.data.features[i];
+                const f = this.appState.geoData.features[i];
 
                 this.onLongClick(<number>f.id);
 
@@ -643,7 +632,7 @@ export class Mapa implements AfterViewInit {
             const i = getIndex(e.clientX, e.clientY);
             if (i === null) return;
 
-            const f = this.data.features[i];
+            const f = this.appState.geoData.features[i];
 
             this.onClick(<number>f.id);
         });

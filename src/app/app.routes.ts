@@ -1,9 +1,11 @@
 import { Routes } from '@angular/router';
-import { App } from 'src/app/app';
+import { ConfiguracioPage } from 'src/app/pages/configuracio/configuracio-page';
+import { HomePage } from 'src/app/pages/home/home-page';
 
 export const routes: Routes = [
 
-    { path: ":id", component: App },
-    { path: "", component: App },
+    { path: "configuracio", component: ConfiguracioPage },
+    { path: ":id", component: HomePage },
+    { path: "", component: HomePage },
 
 ];

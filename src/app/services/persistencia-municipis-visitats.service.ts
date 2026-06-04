@@ -1,48 +1,60 @@
 import { inject, Injectable } from "@angular/core";
 import { AppStateService } from "src/app/services/app-state.service";
 
-type DadesMunicipi = { data?: string, nota?: string };
+export type DadesMunicipi = { data?: string, nota?: string };
+export type DadesMunicipis = Record<number, DadesMunicipi>;
 
 @Injectable({ providedIn: 'root' })
 export class PersistenciaMunicipisVisitatsService {
     private readonly CLAU = "municipisVisitats";
 
-    private appState = inject(AppStateService);
+    private appState: AppStateService;
 
-    public carregar() {
+    inicialitzar(appState: AppStateService) { this.appState = appState; }
+
+    guardar() {
+        localStorage.setItem(this.CLAU, JSON.stringify(this.crearDadesMunicipis()));
+
+        // console.log(JSON.stringify(dadesMunicipis));
+    }
+
+
+    carregar() {
         try {
             let raw = localStorage.getItem(this.CLAU);
             if (!raw) return;
 
-            let dadesMunicipis: Record<number, DadesMunicipi> = JSON.parse(raw);
+            let dadesMunicipis: DadesMunicipis = JSON.parse(raw);
 
-            for (const id in dadesMunicipis) {
-                let { data, nota } = dadesMunicipis[id];
-
-                if (data) this.appState.municipis[id].dataVisita = new Date(data);
-                if (nota) this.appState.municipis[id].nota = nota;
-            }
+            this.carregarDadesMunicipis(dadesMunicipis);
 
         } catch (e) {
             alert("Error al carregar dades de localStorage:\n\n" + e);
         }
     }
 
-    public guardar() {
-        let dadesMunicipis: Record<number, DadesMunicipi> = {};
+    crearDadesMunicipis(): DadesMunicipis {
+        let dadesMunicipis: DadesMunicipis = {};
 
-        for (const id in this.appState.municipis) {
-            const municipi = this.appState.municipis[id];
-
+        for (const [id, municipi] of Object.entries(this.appState.municipis)) {
             if (municipi.dataVisita || municipi.nota) {
                 dadesMunicipis[id] = {};
                 if (municipi.dataVisita) dadesMunicipis[id].data = municipi.dataVisita.toISOString();
                 if (municipi.nota) dadesMunicipis[id].nota = municipi.nota;
             }
         }
-        localStorage.setItem(this.CLAU, JSON.stringify(dadesMunicipis));
-        
-        // console.log(JSON.stringify(dadesMunicipis));
+
+        return dadesMunicipis;
+    }
+
+    carregarDadesMunicipis(dadesMunicipis: DadesMunicipis) {
+
+        for (const [id, { data, nota }] of Object.entries(dadesMunicipis)) {
+            if (!this.appState.municipis[id]) continue;
+            if (data) this.appState.municipis[id].dataVisita = new Date(data);
+            if (nota) this.appState.municipis[id].nota = nota;
+        }
+
     }
 
 }

@@ -1,16 +1,14 @@
 @import "src/styles.scss";
 
 footer {
-    background-color: hsl(346, 0%, 15%);
+    background-color: hsl(219, 100%, 15%);
 
     padding: 2rem 1rem;
-
-    margin-top: 6rem;
 
     text-align: center;
 
     .firma {
-        color: hsl(346, 0%, 68%);
+        color: hsl(219, 100%, 68%);
             
         font-size: 1.5rem;
 
@@ -35,7 +33,7 @@ footer {
             }
 
             i {
-                background-color: hsla(346, 0%, 82%);
+                background-color: hsla(219, 100%, 82%);
 
                 display: block;
                 width: 2.5rem;
