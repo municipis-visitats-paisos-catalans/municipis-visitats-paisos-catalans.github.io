@@ -68,4 +68,8 @@ export class AppStateService {
         this.mapaState.actualitzarMapa$.next();
     }
 
+    get hiHaDadesLocals() {
+        return Object.values(this.municipis).some(m => m.dataVisita || m.nota);
+    }
+
 }

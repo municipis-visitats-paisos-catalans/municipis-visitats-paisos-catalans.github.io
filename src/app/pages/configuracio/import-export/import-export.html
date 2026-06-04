@@ -7,9 +7,11 @@
          <i class="fa-solid fa-arrow-right-to-bracket" style="rotate:90deg"></i>
     </label>
     
-    <button class="boto boing" (click)="exportar()">
-        <span class="me-2">Exportar</span>
-        <i class="fa-solid fa-arrow-up-from-bracket"></i>
-    </button>
+    @if (appState.hiHaDadesLocals) {
+        <button class="boto boing" (click)="exportar()">
+            <span class="me-2">Exportar</span>
+            <i class="fa-solid fa-arrow-up-from-bracket"></i>
+        </button>
+    }
 
 </section>

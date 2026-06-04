@@ -75,5 +75,11 @@ header {
         background-color: light-dark(hsla(192, 100%, 70%, 0.6), hsla(219, 100%, 70%, 0.2));
 
         text-align: center;
+
+        .titol {}
+        .subtitol {
+            font-size: 0.66em;
+            opacity: 0.5;
+        }
     }
 }

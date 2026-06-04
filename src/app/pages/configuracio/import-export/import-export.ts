@@ -11,11 +11,9 @@ import { DadesMunicipi, DadesMunicipis, PersistenciaMunicipisVisitatsService } f
 })
 export class ImportExport {
 
-    private appState = inject(AppStateService);
+    appState = inject(AppStateService);
     private persistencia = inject(PersistenciaMunicipisVisitatsService);
     private router = inject(Router);
-
-    constructor() { }
 
     exportar() {
         let dadesMunicipis: DadesMunicipis = this.persistencia.crearDadesMunicipis();
@@ -64,10 +62,7 @@ export class ImportExport {
         this.router.navigate(["/"]);
     }
 
-    resoldreConflicteDadesDuplicades(
-        visita1: DadesMunicipi,
-        visita2: DadesMunicipi
-    ): DadesMunicipi {
+    resoldreConflicteDadesDuplicades(visita1: DadesMunicipi, visita2: DadesMunicipi): DadesMunicipi {
         const resultat: DadesMunicipi = {};
 
         const data = this.resoldreData(visita1.data, visita2.data);
@@ -145,6 +140,8 @@ export class ImportExport {
                 const text = reader.result as string;
                 const json = JSON.parse(text);
 
+                if (!this.mostrarMissatgeConfirmacio(json)) return;
+
                 this.importar(json);
 
             } catch (e) {
@@ -156,5 +153,19 @@ export class ImportExport {
         };
 
         reader.readAsText(file);
+    }
+
+    private mostrarMissatgeConfirmacio({ "exportat-el": data, "municipis-visitats": municipis }): boolean {
+        let missatge = "S'importarà la còpia de seguretat del";
+        if (data)
+            missatge += `\n${data},`;
+        missatge += `\namb dades de ${Object.keys(municipis).length} municipis.`;
+
+        if (this.appState.hiHaDadesLocals)
+            missatge += "\n\nLes dades importades es fusionaran amb les actuals.";
+
+
+
+        return confirm(missatge.replace(/  +/g, ''));
     }
 }
