@@ -1,0 +1,19 @@
+<section class="card">
+    <div class="buscador">
+        <input #input [ngModel]="textBuscar$ | async" (ngModelChange)="textBuscar$.next($event)" placeholder="Cerca...">
+    </div>
+
+    @if (textBuscar$ | async) {
+        @if (resultats.length) {
+            <div class="resultats">
+                @for (resultat of resultats; track resultat.id) {
+                    <jmp-resultat [municipi]="resultat" />
+                }
+            </div>
+        }
+        @else {
+            Sense resultats
+        }
+    }
+
+</section>

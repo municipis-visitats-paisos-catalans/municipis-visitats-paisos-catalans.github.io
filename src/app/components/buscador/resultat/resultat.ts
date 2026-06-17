@@ -1,54 +1,49 @@
 import { TextFieldModule } from '@angular/cdk/text-field';
-import { Component, inject, OnDestroy, OnInit } from '@angular/core';
+import { AsyncPipe } from '@angular/common';
+import { Component, inject, Input, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatRipple } from "@angular/material/core";
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import * as d3 from 'd3';
-import { Subscription } from 'rxjs';
+import { BehaviorSubject, Subscription } from 'rxjs';
 import { Municipi } from 'src/app/models/municipi';
 import { AppStateService } from 'src/app/services/app-state.service';
 import { MapaStateService } from 'src/app/services/mapa-state.service';
 import { PersistenciaMunicipisVisitatsService } from 'src/app/services/persistencia-municipis-visitats.service';
 
 @Component({
-    selector: 'jmp-info-municipi',
+    selector: 'jmp-resultat',
     imports: [
         MatRipple,
         MatFormFieldModule,
         MatInputModule,
         TextFieldModule,
         FormsModule,
+        AsyncPipe
     ],
-    templateUrl: './info-municipi.html',
-    styleUrl: './info-municipi.scss'
+    templateUrl: './resultat.html',
+    styleUrl: './resultat.scss'
 })
-export class InfoMunicipi implements OnInit, OnDestroy {
+export class Resultat implements OnInit {
+    @Input() municipi: Municipi;
 
-    public appState = inject(AppStateService);
-    public mapState = inject(MapaStateService);
-    public persistencia = inject(PersistenciaMunicipisVisitatsService);
-
-    public subscripcioMunicipi: Subscription;
-
-    public municipi: Municipi;
+    appState = inject(AppStateService);
+    mapState = inject(MapaStateService);
+    persistencia = inject(PersistenciaMunicipisVisitatsService);
 
 
     ngOnInit() {
-        this.subscripcioMunicipi = this.mapState.idMunicipiSeleccionat$.subscribe((id: number | null) => {
-            if (!id) return;
-
-            this.municipi = this.appState.municipis[id];
-
-            this.generarSiluetaMunicipiPath();
-        });
+        this.generarSiluetaMunicipiPath();
     }
-
-    ngOnDestroy() { this.subscripcioMunicipi.unsubscribe(); }
 
     public get textDataVisita() {
         return this.municipi.dataVisita ?
-            "Visitat el " + this.municipi.dataVisita.toLocaleString('ca-ES', { dateStyle: 'long', timeStyle: 'short' }) :
+            this.municipi.dataVisita.toLocaleString('ca-ES', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+            }) :
             "No visitat";
     }
 
@@ -88,4 +83,7 @@ export class InfoMunicipi implements OnInit, OnDestroy {
         this.persistencia.guardar();
     }
 
+    obrirModalMunicipi() {
+        this.mapState.idMunicipiSeleccionat$.next(this.municipi.id);
+    }
 }

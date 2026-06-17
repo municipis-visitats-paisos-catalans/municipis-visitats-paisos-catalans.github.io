@@ -27,12 +27,17 @@ header {
         font-size: 2rem;
         color: light-dark(hsl(192, 100%, 24%), hsl(219, 100%, 87%));
         
-        width: 7rem;
-        height: 5rem;
+        width: 5.5rem;
+        height: calc(5rem - 0.5rem);
+        border-radius: 5rem;
         
         @include mobil {
-            width: 5rem;
-            height: 4rem;
+            width: 4.5rem;
+            height: calc(4rem - 0.5rem);
+        }
+
+        ::ng-deep .mat-ripple-element {
+            background-color: light-dark(hsla(192, 100%, 24%, 0.3), hsla(219, 100%, 87%, 0.3)) !important;
         }
     }
     

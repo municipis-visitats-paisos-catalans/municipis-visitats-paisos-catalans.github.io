@@ -1,0 +1,27 @@
+<div class="municipi" [class.visitat]="municipi.dataVisita" (click)="obrirModalMunicipi()" matRipple>
+    
+    <div class="silueta-municipi">
+        <svg [attr.viewBox]="viewBox"><path [attr.d]="pathD" /></svg>
+    </div>
+
+    <div class="dades">
+        <div class="nom">{{municipi.nom}}</div>
+        <div class="nota">{{municipi.nota}}</div>
+    </div>
+
+    <button class="rs visita" (click)="toggleVisita(); $event.stopPropagation()">
+        <div class="boto">
+            @if (municipi.dataVisita) {
+                <i class="fa-solid fa-map-pin"></i>
+            } @else {
+                <!-- <i class="fa-solid fa-compass"></i> -->
+                <i class="fa-solid fa-map-pin opacity-50"></i>
+            }
+        </div>
+        
+        @if (municipi.dataVisita) {
+            <div class="data">{{textDataVisita}}</div>
+        }
+    </button>
+
+</div>

@@ -7,15 +7,15 @@ import { MapaStateService } from 'src/app/services/mapa-state.service';
 import { Utils } from 'src/app/shared/utils/utils';
 
 @Component({
-    selector: 'jmp-modal',
+    selector: 'jmp-modal-municipi',
     imports: [
         CommonModule,
         InfoMunicipi,
     ],
-    templateUrl: './modal.html',
-    styleUrl: './modal.scss',
+    templateUrl: './modal-municipi.html',
+    styleUrl: './modal-municipi.scss',
 })
-export class ModalComponent implements OnInit, OnDestroy {
+export class ModalMunicipi implements OnInit, OnDestroy {
 
     private mapState = inject(MapaStateService);
     private appState = inject(AppStateService);

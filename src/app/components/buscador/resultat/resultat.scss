@@ -1,0 +1,112 @@
+@import "src/styles.scss";
+
+// Colors //
+.municipi.visitat {
+    background-color: hsla(51, 100%, 85%, 0.7);
+    color: hsl(51, 100%, 15%);
+    --svg-fill: hsl(51, 100%, 50%);
+    --svg-stroke: hsl(51, 100%, 31%);
+    
+    .visita .boto {
+        background-color: hsl(150, 100%, 35%);
+        color: white;
+    }
+}
+.municipi:not(.visitat) {
+    background-color: hsla(218, 0%, 75%, 0.7);
+    color: light-dark(hsl(0, 0%, 15%), hsl(217, 100%, 15%));
+    --svg-fill: light-dark(hsla(0, 0%, 100%, 0.5), hsla(217, 39%, 30%, 0.375));
+    --svg-stroke: light-dark(hsla(0, 0%, 100%, 0), hsla(218, 20%, 31%, 0));
+
+    .visita .boto {
+        color: hsl(0, 100%, 25%);
+        background-color: hsla(0, 100%, 35%, 0.15);
+    }
+}
+
+// Estils //
+.municipi {
+    max-width: 100%;
+    
+    border-radius: 2rem;
+
+    display: flex;
+    align-items: center;
+    // gap: 1rem;
+
+    font-size: 1rem;
+    text-align: center;
+    
+    cursor: pointer;
+
+    transition: background-color 0.2s;
+
+
+    .silueta-municipi {
+        padding: 0.75rem;
+
+        svg {
+            width: 100px;
+            height: 100px;
+            padding: 2px;
+
+            path {
+                vector-effect: non-scaling-stroke;
+                stroke-width: 1;
+                fill: var(--svg-fill);
+                stroke: var(--svg-stroke);
+                transition: fill 0.2s, stroke 0.2s;
+            }
+        }
+    }
+
+    .dades {
+        flex: 1;
+        padding: 0.5rem;
+
+        .nom {
+            font-size: 1.5em;
+            font-weight: bold;
+            transition: color 0.3s;
+        }
+    }
+
+    .visita {
+        padding: 0.5rem;
+        width: 6rem;
+
+        align-self: stretch;
+
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        gap: 0.5rem;
+
+        .boto {
+            font-size: 1.2em;
+            border-radius: 2rem;
+            padding: 0.3rem 0.7rem;
+
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .data {
+            font-size: 0.9em;
+            color: rgb(142, 121, 0);
+            font-style: italic;
+        }
+    }
+}
+
+.card.visitat {
+    .boto-visitar {
+        background-color: hsl(150, 100%, 35%);
+        color: white;
+    }
+}
+.card:not(.visitat) {
+    .boto-visitar {
+        color: hsl(0, 100%, 25%);
+        background-color: hsla(0, 100%, 35%, 0.15);
+    }
+}

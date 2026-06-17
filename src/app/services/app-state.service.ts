@@ -1,4 +1,5 @@
 import { inject, Injectable } from '@angular/core';
+import { BehaviorSubject } from 'rxjs';
 import { Municipi } from 'src/app/models/municipi';
 import { FeatureCollectionType, GeoService } from 'src/app/services/geo.service';
 import { MapaStateService } from 'src/app/services/mapa-state.service';
@@ -16,6 +17,8 @@ export class AppStateService {
 
     private geo = inject(GeoService);
     geoData!: FeatureCollectionType;
+
+    buscadorObert$ = new BehaviorSubject<boolean>(false);
 
     constructor() {
         this.persistencia.inicialitzar(this);

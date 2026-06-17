@@ -1,0 +1,17 @@
+@if (visible) {
+
+    <div class="backdrop"
+        (click)="onBackdropClick()">
+
+        <div class="content"
+            [class.obert]="obert"
+            [class.tancant]="animantTancament"
+            (click)="$event.stopPropagation()">
+
+            <jmp-buscador />
+
+        </div>
+
+    </div>
+
+}

@@ -7,13 +7,16 @@ header {
     backdrop-filter: blur(20px);
 
     display: flex;
-    align-items: center;
 
     @include mobil { height: 4rem; }
 
     z-index: 1000;
     
     .titol-header {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
         width: 100%;
         text-align: center;
         
@@ -25,19 +28,31 @@ header {
         font-style: italic;
         font-weight: bold;
 
-        padding: 0.5rem;
+        padding: 0.12rem 0.5rem;
     }
-    .boto-configuracio {
-        font-size: 2rem;
-        color: light-dark(hsl(192, 100%, 24%), hsl(219, 100%, 87%));
-        
-        width: 7rem;
-        height: 5rem;
+    .botons {
+        display: flex;
+        height: inherit;
 
-        
-        @include mobil {
+        button {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            font-size: 2rem;
+            color: light-dark(hsl(192, 100%, 24%), hsl(219, 100%, 87%));
+            
             width: 5rem;
-            height: 5rem;
+            border-radius: 5rem;
+
+            
+            @include mobil {
+                width: 4rem;
+            }
+        }
+
+        ::ng-deep .mat-ripple-element {
+            background-color: light-dark(hsla(192, 100%, 24%, 0.3), hsla(219, 100%, 87%, 0.3)) !important;
         }
     }
 }

@@ -1,14 +1,17 @@
 import { Location } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
+import { MatRipple } from '@angular/material/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { skip, Subject, takeUntil } from 'rxjs';
 import { Mapa } from 'src/app/components/mapa/mapa';
-import { ModalComponent } from 'src/app/components/modal/modal';
+import { ModalBuscador } from 'src/app/components/modals/modal-buscador/modal-buscador';
+import { ModalMunicipi } from 'src/app/components/modals/modal-municipi/modal-municipi';
+import { AppStateService } from 'src/app/services/app-state.service';
 import { MapaStateService } from 'src/app/services/mapa-state.service';
 
 @Component({
     selector: 'home-page',
-    imports: [Mapa, ModalComponent],
+    imports: [Mapa, ModalMunicipi, ModalBuscador, MatRipple],
     templateUrl: './home-page.html',
     styleUrl: './home-page.scss'
 })
@@ -17,6 +20,7 @@ export class HomePage implements OnInit {
     private route = inject(ActivatedRoute);
     public router = inject(Router);
 
+    appState = inject(AppStateService);
     private mapState = inject(MapaStateService);
 
     private destroy$ = new Subject<void>();

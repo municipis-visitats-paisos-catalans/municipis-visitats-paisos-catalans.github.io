@@ -1,17 +1,24 @@
 <header>
-    <div class="titol-header">Municipis visitats dels Països Catalans</div>
-    <button class="rs boto-configuracio boing" (click)="router.navigate(['/configuracio']);">
-        <i class="fa-solid fa-gear"></i>
-    </button>
+    <div class="titol-header">Municipis visitats dels Països&nbsp;Catalans</div>
+    <div class="botons p-1">
+        <button class="rs" (click)="appState.buscadorObert$.next(true)" matRipple>
+            <i class="fa-solid fa-search"></i>
+        </button>
+        <button class="rs" (click)="router.navigate(['/configuracio']);" matRipple>
+            <i class="fa-solid fa-gear"></i>
+        </button>
+    </div>
 </header>
 
 <div class="content">
 
-    
+
     <jmp-mapa />
 
-    <jmp-modal />
+    <jmp-modal-municipi />
+
+    <jmp-modal-buscador />
 
 
-    
+
 </div>
